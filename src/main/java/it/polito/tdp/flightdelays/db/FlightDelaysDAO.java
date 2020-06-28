@@ -7,7 +7,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
+import it.polito.tdp.flightdelays.model.Adiacenza;
 import it.polito.tdp.flightdelays.model.Airline;
 import it.polito.tdp.flightdelays.model.Airport;
 import it.polito.tdp.flightdelays.model.Flight;
@@ -89,6 +91,41 @@ public class FlightDelaysDAO {
 			System.out.println("Errore connessione al database");
 			throw new RuntimeException("Error Connection Database");
 		}
+	}
+
+	public List<Adiacenza> getAdiacenze(Airline linea, Map<String, Airport> idMap) {
+		
+		final String sql = "SELECT f.ORIGIN_AIRPORT_ID AS id1, f.DESTINATION_AIRPORT_ID AS id2, AVG(ARRIVAL_DELAY) AS media, f.DISTANCE AS d " + 
+				"FROM flights f " + 
+				"WHERE f.AIRLINE = ? AND " + 
+				"f.ORIGIN_AIRPORT_ID IN (SELECT ID FROM airports) AND " + 
+				"f.DESTINATION_AIRPORT_ID IN (SELECT ID FROM airports) " + 
+				"GROUP BY f.ORIGIN_AIRPORT_ID, f.DESTINATION_AIRPORT_ID";
+		List<Adiacenza> adiacenze = new ArrayList<>();
+		
+		try {
+			
+			Connection conn = DBConnect.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setString(1, linea.getId());
+			ResultSet rs = st.executeQuery();
+			
+			while(rs.next()) {
+				Airport a1 = idMap.get(rs.getString("id1"));
+				Airport a2 = idMap.get(rs.getString("id2"));
+				Double peso = (double) rs.getDouble("media")/rs.getInt("d");
+				Adiacenza x = new Adiacenza(a1, a2, peso);
+				adiacenze.add(x);
+			}
+			conn.close();
+			return adiacenze;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("Errore connessione al database");
+			throw new RuntimeException("Error Connection Database");
+		}
+		
 	}
 }
 

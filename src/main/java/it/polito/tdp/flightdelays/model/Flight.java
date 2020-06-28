@@ -2,7 +2,7 @@ package it.polito.tdp.flightdelays.model;
 
 import java.time.LocalDateTime;
 
-public class Flight {
+public class Flight implements Comparable <Flight>{
 
 	private int id;
 	private String airlineId;
@@ -147,6 +147,11 @@ public class Flight {
 		builder.append(distance);
 		builder.append("]");
 		return builder.toString();
+	}
+
+	@Override
+	public int compareTo(Flight other) {
+		return this.scheduledDepartureDate.compareTo(other.scheduledDepartureDate);
 	}
 }
 
